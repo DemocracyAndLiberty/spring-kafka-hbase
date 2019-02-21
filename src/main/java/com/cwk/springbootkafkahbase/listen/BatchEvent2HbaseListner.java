@@ -14,27 +14,27 @@ import java.util.List;
 @Component
 public class BatchEvent2HbaseListner {
 
-    private static final Logger log = LoggerFactory.getLogger(BatchEvent2HbaseListner.class);
-
-    @KafkaListener(id = "topic-dsg005-consumer", topics = "topic-dsg005",containerFactory = "batchContainerFactory")
-    public void batchListenerWithPartition(List<String> datas) throws Exception {
-        log.info("topic-dsg005 consumer  receive data time:" + System.currentTimeMillis());
-
-        //检查表
-        if (!HbaseUtils.tableExist1("kafka2HbaseEventTest")) {
-            HbaseUtils.createTable("kafka2HbaseEventTest", "event","metadata");
-        }
-        LinkedList<Object> list = new LinkedList<>();
-        for (String data : datas) {
-            Kafka_RealSync_Event event = JSON.parseObject(data, Kafka_RealSync_Event.class);
-            event.updateMetadata();
-            event.updateMetadataMap();
-            list.add(event);
-        }
-        //UUID.randomUUID().toString().replaceAll("-", "")
-        //UUID.randomUUID().toString().replaceAll("-", "")
-        HbaseUtils.putDataBatch("kafka2HbaseEventTest", list,"event","metadata");
-
-    }
+//    private static final Logger log = LoggerFactory.getLogger(BatchEvent2HbaseListner.class);
+//
+//    @KafkaListener(id = "topic-dsg005-consumer", topics = "topic-dsg005",containerFactory = "batchContainerFactory")
+//    public void batchListenerWithPartition(List<String> datas) throws Exception {
+//        log.info("topic-dsg005 consumer  receive data time:" + System.currentTimeMillis());
+//
+//        //检查表
+//        if (!HbaseUtils.tableExist1("kafka2HbaseEventTest")) {
+//            HbaseUtils.createTable("kafka2HbaseEventTest", "event","metadata");
+//        }
+//        LinkedList<Object> list = new LinkedList<>();
+//        for (String data : datas) {
+//            Kafka_RealSync_Event event = JSON.parseObject(data, Kafka_RealSync_Event.class);
+//            event.updateMetadata();
+//            event.updateMetadataMap();
+//            list.add(event);
+//        }
+//        //UUID.randomUUID().toString().replaceAll("-", "")
+//        //UUID.randomUUID().toString().replaceAll("-", "")
+//        HbaseUtils.putDataBatch("kafka2HbaseEventTest", list,"event","metadata");
+//
+//    }
 
 }

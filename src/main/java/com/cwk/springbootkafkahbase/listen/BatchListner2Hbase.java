@@ -55,7 +55,7 @@ public class BatchListner2Hbase {
 //    }
 
 
-    @Autowired
+  /*  @Autowired
     KafkaProperties properties;
 
     private Map<String, Object> consumerProps() {
@@ -86,7 +86,7 @@ public class BatchListner2Hbase {
         //设置为批量监听
         container.setBatchListener(true);
         return container;
-    }
+    }*/
 
 //    @Bean
 //    public NewTopic batchTopic() {

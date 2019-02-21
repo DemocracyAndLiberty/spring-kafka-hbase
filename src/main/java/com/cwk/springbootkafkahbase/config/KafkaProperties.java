@@ -22,6 +22,27 @@ public class KafkaProperties {
     private String keyDeserializer;
     @Value("${spring.kafka.consumer.value-deserializer}")
     private String valueDeserializer;
+    @Value("${spring.kafka.producer.key-serializer}")
+    private String keySerializer;
+    @Value("${spring.kafka.producer.value-serializer}")
+    private String valueSerializer;
+
+    public String getKeySerializer() {
+        return keySerializer;
+    }
+
+    public void setKeySerializer(String keySerializer) {
+        this.keySerializer = keySerializer;
+    }
+
+    public String getValueSerializer() {
+        return valueSerializer;
+    }
+
+    public void setValueSerializer(String valueSerializer) {
+        this.valueSerializer = valueSerializer;
+    }
+
     private List<String> servers;
     @Value("${spring.kafka.consumer.auto-offset-reset}")
     private String autoOffSetReset;

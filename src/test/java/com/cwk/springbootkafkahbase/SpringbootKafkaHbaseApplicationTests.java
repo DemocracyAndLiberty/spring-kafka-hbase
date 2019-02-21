@@ -9,6 +9,7 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.DescribeTopicsResult;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,6 @@ import java.util.concurrent.ExecutionException;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class SpringbootKafkaHbaseApplicationTests {
-
 
     @Autowired
     private KafkaTemplate kafkaTemplate;
@@ -242,6 +242,25 @@ public class SpringbootKafkaHbaseApplicationTests {
         event.updateMetadataMap();
         System.out.println(event.getMetadata().getMetadataJson());
 
+    }
+
+
+    @Test
+    public void testBatch02() throws InterruptedException {
+        for (int i = 0; i < 32; i++) {
+            kafkaTemplate.send("topic-quick-batch-partition", "test batch listener,dataNum-" + i);
+
+            //kafkaTemplate.send("topic-quick-batch-partition", "test-key-"+i,"test batch listener,dataNum-" + i);
+        }
+        Thread.sleep(20000);
+    }
+
+    @Test
+    public void testAck() throws InterruptedException {
+        for (int i = 0; i < 10; i++) {
+            kafkaTemplate.send("topic-2parts", "topic-2parts-" + i);
+        }
+        Thread.sleep(20000);
     }
 
 

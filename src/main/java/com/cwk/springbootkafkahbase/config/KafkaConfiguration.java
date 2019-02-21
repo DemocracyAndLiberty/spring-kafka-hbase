@@ -6,10 +6,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.serialization.IntegerDeserializer;
-import org.apache.kafka.common.serialization.IntegerSerializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +15,11 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
+import org.springframework.kafka.listener.AcknowledgingConsumerAwareMessageListener;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.listener.config.ContainerProperties;
 import org.springframework.kafka.support.ProducerListener;
-import org.springframework.kafka.transaction.KafkaTransactionManager;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -52,8 +48,8 @@ public class KafkaConfiguration {
      * @return
      */
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<Integer, String> kafkaListenerContainerFactory() throws ClassNotFoundException {
-        ConcurrentKafkaListenerContainerFactory<Integer, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() throws ClassNotFoundException {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }
@@ -66,16 +62,16 @@ public class KafkaConfiguration {
      */
 //    @Bean
 //    public KafkaMessageListenerContainer demoListenerContainer() throws ClassNotFoundException {
-//        ContainerProperties properties = new ContainerProperties("topic.quick.bean");
+//        ContainerProperties properties = new ContainerProperties("topic-quick-ack");
 //
-//        properties.setGroupId("bean");
+//        properties.setGroupId("topic-quick-ack-bean");
 //
 //        properties.setMessageListener(new MessageListener<Integer, String>() {
 //            private Logger log = LoggerFactory.getLogger(this.getClass());
 //
 //            @Override
 //            public void onMessage(ConsumerRecord<Integer, String> record) {
-//                log.info("topic.quick.bean receive : " + record.toString());
+//                log.info("topic-quick-ack-bean receive : " + record.toString());
 //            }
 //        });
 //
@@ -84,7 +80,7 @@ public class KafkaConfiguration {
 
     //根据consumerProps填写的参数创建消费者工厂
     @Bean
-    public ConsumerFactory<Integer, String> consumerFactory() throws ClassNotFoundException {
+    public ConsumerFactory<String, String> consumerFactory() throws ClassNotFoundException {
         return new DefaultKafkaConsumerFactory<>(consumerProps());
     }
 
@@ -99,7 +95,7 @@ public class KafkaConfiguration {
      * @return
      */
     @Bean
-    public ProducerFactory<Integer, String> producerFactory() {
+    public ProducerFactory<String, String> producerFactory() throws ClassNotFoundException {
         DefaultKafkaProducerFactory factory = new DefaultKafkaProducerFactory<>(senderProps());
         //factory.transactionCapable();
         //factory.setTransactionIdPrefix("tran-");
@@ -116,8 +112,8 @@ public class KafkaConfiguration {
     @Bean
     //@Primary注解的意思是在拥有多个同类型的Bean时优先使用该Bean，到时候方便我们使用@Autowired注解自动注入
     @Primary
-    public KafkaTemplate<Integer, String> kafkaTemplate() {
-        KafkaTemplate template = new KafkaTemplate<Integer, String>(producerFactory());
+    public KafkaTemplate<String, String> kafkaTemplate() throws ClassNotFoundException {
+        KafkaTemplate template = new KafkaTemplate<String, String>(producerFactory());
         return template;
     }
 
@@ -125,8 +121,8 @@ public class KafkaConfiguration {
     //在声明defaultKafkaTemplate这个Bean的时候添加了topicName
     //只要调用sendDefault方法，kafkaTemplate会自动把消息发送到名为"topic.quick.default"的Topic中
     @Bean("defaultKafkaTemplate")
-    public KafkaTemplate<Integer, String> defaultKafkaTemplate() {
-        KafkaTemplate template = new KafkaTemplate<Integer, String>(producerFactory());
+    public KafkaTemplate<String, String> defaultKafkaTemplate() throws ClassNotFoundException {
+        KafkaTemplate template = new KafkaTemplate<String, String>(producerFactory());
         template.setDefaultTopic("topic.quick.default");
         return template;
     }
@@ -146,6 +142,7 @@ public class KafkaConfiguration {
             log.info("Message send error : " + producerRecord.toString());
         }
     }
+
 
     //消费者配置参数
     private Map<String, Object> consumerProps() throws ClassNotFoundException {
@@ -169,12 +166,11 @@ public class KafkaConfiguration {
     }
 
     //生产者配置
-    private Map<String, Object> senderProps() {
+    private Map<String, Object> senderProps() throws ClassNotFoundException {
         Map<String, Object> props = new HashMap<>();
         //连接地址
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, properties.getServers().get(1) + ":" + properties.getServerPort());
         //props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "192.168.23.121:9092");
-
         //重试，0为不启用重试机制
         props.put(ProducerConfig.RETRIES_CONFIG, 1);
         //控制批处理大小，单位为字节
@@ -184,9 +180,9 @@ public class KafkaConfiguration {
         //生产者可以使用的总内存字节来缓冲等待发送到服务器的记录
         props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 1024000);
         //键的序列化方式
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Class.forName(properties.getKeySerializer()));
         //值的序列化方式
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, Class.forName(properties.getValueSerializer()));
         return props;
     }
 

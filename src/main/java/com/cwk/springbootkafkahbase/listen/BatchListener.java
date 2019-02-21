@@ -61,9 +61,9 @@ public class BatchListener {
         ConcurrentKafkaListenerContainerFactory container = new ConcurrentKafkaListenerContainerFactory();
         container.setConsumerFactory(new DefaultKafkaConsumerFactory(consumerProps()));
         //设置并发量，小于或等于Topic的分区数
-        container.setConcurrency(1);
+        container.setConcurrency(3);
         //设置为批量监听
-        container.setBatchListener(true);
+        container.setBatchListener(false);
         return container;
     }
 
